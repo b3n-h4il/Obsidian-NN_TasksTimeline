@@ -134,9 +134,14 @@
 	align-items: center;
 	flex-shrink: 1;
 	flex-grow: 1;
-	margin: 0 auto;
-	width: 1px;
+	margin: 0;
+}
+.taskido .stripe:after {
+	content: "";
+	height: 100%;
+	width: 0.5px;
 	background: var(--checkbox-border-color);
+	margin: 5px 0;
 }
 .taskido .task.overdue .timeline .icon svg line {
 	stroke: #ff375f !important;
@@ -232,7 +237,7 @@
 	color: var(--text-muted);
 	padding: 0px;
 	border: none;
-	line-height: 1 !important;
+	line-height: 0 !important;
 	padding: 0;
 	border-radius: 3px !important;
 }
@@ -241,7 +246,6 @@
 }
 .taskido .task .info .tag {
 	color: var(--tag-color) !important;
-	background: none !important;
 	cursor: pointer;
 }
 .taskido .info .icon {
@@ -365,9 +369,7 @@
 	transition: none !important;
 }
 /* Classes */
-.taskido.todayFocus .todayHeader {
-	color: var(--interactive-accent);
-}
+.taskido.todayFocus .todayHeader,
 .taskido.todoFocus .counter#todo,
 .taskido.todoFilter .counter#todo,
 .taskido.overdueFocus .counter#overdue,
@@ -379,7 +381,6 @@
 .taskido.noTag .tag,
 .taskido.noPriority .priority,
 .taskido.noFile .task .file,
-.taskido.noHeader .task .header,
 .taskido.noFile .task .info > .file,
 .taskido.noInfo .task .line:nth-child(2),
 .taskido.noDone .year[data-types="done"],
@@ -414,3 +415,337 @@
 .taskido.unplannedFilter .year:not(.current):not([data-types*="unplanned"]) { display: none; }
 .taskido.unplannedFilter .details:not(.today):not([data-types*="unplanned"]) { display: none; }
 .taskido.unplannedFilter .task:not(.unplanned) { display: none; }
+
+
+
+/* Status ITS na timeline personalizada */
+.task-status-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.task-status-icon .task-list-item-checkbox {
+    margin: 0;
+    cursor: default;
+    opacity: 1;
+}
+
+/* Não riscar tarefas com status personalizados */
+.task-status-icon .task-list-item-checkbox:not(:checked) {
+    opacity: 1;
+}
+
+/* Compatibilidade dos checkboxes ITS com a timeline */
+.task-status-icon .task-list-item {
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.task-status-icon .task-list-item-checkbox {
+    display: inline-block;
+    margin: 0;
+    opacity: 1;
+    cursor: default;
+}
+
+
+/* Checkboxes de status na timeline */
+.taskido .timeline .icon .task-list-item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.taskido .timeline .icon .task-list-item-checkbox {
+    display: inline-block;
+    flex: 0 0 auto;
+    margin: 0;
+    opacity: 1;
+    cursor: default;
+}
+
+/* Evita que o ícone herde dimensões inadequadas do SVG da timeline */
+.taskido .timeline .icon .task-list-item-checkbox::after {
+    transform: none;
+}
+
+
+.taskido .timeline .icon li.task-list-item {
+    display: inline-flex;
+    align-items: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+
+
+/* ITS Theme — ícones alternativos na timeline */
+.taskido .timeline .task-list-item[data-task] > input.task-list-item-checkbox::after {
+    font-family: var(--its);
+    font-weight: normal;
+    position: absolute;
+    inset: 0;
+    display: block;
+    text-align: center;
+    line-height: 1em;
+    background: transparent !important;
+    border: none !important;
+    mask: none !important;
+    -webkit-mask: none !important;
+}
+
+/* Concluída */
+.taskido .timeline .task-list-item[data-task="X"] > input.task-list-item-checkbox::after {
+    content: "\ec01";
+    color: var(--accent2-lite, var(--text-accent));
+}
+
+/* Encaminhada / em andamento */
+.taskido .timeline .task-list-item[data-task=">"] > input.task-list-item-checkbox::after {
+    content: "\ec03";
+    color: var(--text-normal);
+}
+
+/* Adiada / encaminhada para trás */
+.taskido .timeline .task-list-item[data-task="<"] > input.task-list-item-checkbox::after {
+    content: "\ec03";
+    color: var(--text-faint);
+    transform: scaleX(-1);
+}
+
+/* Cancelada */
+.taskido .timeline .task-list-item[data-task="-"] > input.task-list-item-checkbox::after {
+    content: "\ec02";
+    color: rgb(var(--chbx-d));
+}
+
+/* Data */
+.taskido .timeline .task-list-item[data-task="D"] > input.task-list-item-checkbox::after {
+    content: "\ec04";
+    color: rgb(var(--chbx-h));
+}
+
+/* Pergunta */
+.taskido .timeline .task-list-item[data-task="?"] > input.task-list-item-checkbox::after {
+    content: "\ec05";
+    color: rgb(var(--chbx-q));
+}
+
+/* Importante */
+.taskido .timeline .task-list-item[data-task="!"] > input.task-list-item-checkbox::after {
+    content: "\ec08";
+    color: rgb(var(--chbx-i));
+}
+
+/* Adicionada */
+.taskido .timeline .task-list-item[data-task="+"] > input.task-list-item-checkbox::after {
+    content: "\ec06";
+    color: rgb(var(--chbx-a));
+}
+
+/* Em progresso */
+.taskido .timeline .task-list-item[data-task="/"] > input.task-list-item-checkbox::after {
+    content: "\ec17";
+    color: var(--accent, var(--interactive-accent));
+}
+
+/* Recorrente */
+.taskido .timeline .task-list-item[data-task="R"] > input.task-list-item-checkbox::after {
+    content: "\ec07";
+    color: rgb(var(--chbx-R));
+}
+
+/* Informação */
+.taskido .timeline .task-list-item[data-task="i"] > input.task-list-item-checkbox::after {
+    content: "\ec09";
+    color: rgb(var(--chbx-id));
+}
+
+/* Livro */
+.taskido .timeline .task-list-item[data-task="B"] > input.task-list-item-checkbox::after {
+    content: "\ec10";
+    color: rgb(var(--chbx-B));
+}
+
+/* Prioridade */
+.taskido .timeline .task-list-item[data-task="P"] > input.task-list-item-checkbox::after {
+    content: "\ec11";
+    color: rgb(var(--chbx-P));
+}
+
+/* Calendário */
+.taskido .timeline .task-list-item[data-task="C"] > input.task-list-item-checkbox::after {
+    content: "\ec12";
+    color: rgb(var(--chbx-C));
+}
+
+/* Questão */
+.taskido .timeline .task-list-item[data-task="Q"] > input.task-list-item-checkbox::after {
+    content: "\ec13";
+    color: rgb(var(--chbx-R));
+}
+
+/* Nota */
+.taskido .timeline .task-list-item[data-task="N"] > input.task-list-item-checkbox::after {
+    content: "\ec14";
+    color: rgb(var(--chbx-N));
+}
+
+/* Marcador */
+.taskido .timeline .task-list-item[data-task="b"] > input.task-list-item-checkbox::after {
+    content: "\ec15";
+    color: rgb(var(--chbx-b));
+}
+
+/* Ideia */
+.taskido .timeline .task-list-item[data-task="I"] > input.task-list-item-checkbox::after {
+    content: "\ec16";
+    color: rgb(var(--chbx-I));
+}
+
+/* Planejamento */
+.taskido .timeline .task-list-item[data-task="p"] > input.task-list-item-checkbox::after {
+    content: "\ec19";
+    color: rgb(var(--chbx-R));
+}
+
+/* Evento */
+.taskido .timeline .task-list-item[data-task="E"] > input.task-list-item-checkbox::after {
+    content: "\ec18";
+    color: rgb(var(--chbx-I));
+}
+
+/* Localização */
+.taskido .timeline .task-list-item[data-task="L"] > input.task-list-item-checkbox::after {
+    content: "\ec21";
+    color: rgb(var(--chbx-N));
+}
+
+/* Arquivo */
+.taskido .timeline .task-list-item[data-task="A"] > input.task-list-item-checkbox::after {
+    content: "\ec20";
+    color: rgb(var(--chbx-P));
+}
+
+/* Repetição */
+.taskido .timeline .task-list-item[data-task="r"] > input.task-list-item-checkbox::after {
+    content: "\ec22";
+    color: rgb(var(--chbx-r));
+}
+
+/* Conversa */
+.taskido .timeline .task-list-item[data-task="c"] > input.task-list-item-checkbox::after {
+    content: "\ec29";
+    color: rgb(var(--chbx-c));
+}
+
+/* Objetivo */
+.taskido .timeline .task-list-item[data-task="o"] > input.task-list-item-checkbox::after {
+    content: "\ec24";
+    color: rgb(var(--chbx-b));
+}
+
+/* Documento */
+.taskido .timeline .task-list-item[data-task="d"] > input.task-list-item-checkbox::after {
+    content: "\ec25";
+    color: rgb(var(--chbx-I));
+}
+
+/* Tarefa */
+.taskido .timeline .task-list-item[data-task="T"] > input.task-list-item-checkbox::after {
+    content: "\ec26";
+    color: rgb(var(--chbx-R));
+}
+
+/* Tempo */
+.taskido .timeline .task-list-item[data-task="t"] > input.task-list-item-checkbox::after {
+    content: "\ec27";
+    color: rgb(var(--chbx-R));
+}
+
+/* Opção */
+.taskido .timeline .task-list-item[data-task="O"] > input.task-list-item-checkbox::after {
+    content: "\e805";
+    color: hsl(var(--interactive-accent-hsl));
+}
+
+/* Finalizada */
+.taskido .timeline .task-list-item[data-task="F"] > input.task-list-item-checkbox::after {
+    content: "\ec28";
+    color: rgb(var(--chbx-h));
+}
+
+/* Espera */
+.taskido .timeline .task-list-item[data-task="W"] > input.task-list-item-checkbox::after {
+    content: "\e813";
+    color: rgb(var(--chbx-P));
+}
+
+/* Em revisão */
+.taskido .timeline .task-list-item[data-task="~"] > input.task-list-item-checkbox::after {
+    content: "\ec33";
+    color: rgb(var(--chbx-C));
+}
+
+/* Favorito */
+.taskido .timeline .task-list-item[data-task="@"] > input.task-list-item-checkbox::after {
+    content: "\e900";
+    color: rgb(var(--chbx-b));
+}
+
+/* Futuro */
+.taskido .timeline .task-list-item[data-task="f"] > input.task-list-item-checkbox::after {
+    content: "\e81e";
+    color: rgb(var(--chbx-N));
+}
+
+/* Hábito */
+.taskido .timeline .task-list-item[data-task="H"] > input.task-list-item-checkbox::after {
+    content: "\ec30";
+    color: rgb(var(--chbx-a));
+}
+
+/* Outros */
+.taskido .timeline .task-list-item[data-task="&"] > input.task-list-item-checkbox::after {
+    content: "\ec32";
+    color: rgb(var(--chbx-B));
+}
+
+/* Suspensa */
+.taskido .timeline .task-list-item[data-task="s"] > input.task-list-item-checkbox::after {
+    content: "\ec31";
+    color: rgb(var(--chbx-d));
+}
+
+/* Remove o quadrinho nativo dos checkboxes na timeline */
+.taskido .timeline .task-list-item-checkbox {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* Remove possíveis máscaras e fundos aplicados pelo tema */
+.taskido .timeline .task-list-item-checkbox::before {
+    content: none !important;
+    display: none !important;
+}
+
+/* Mantém somente o glifo do ITS Theme */
+.taskido .timeline .task-list-item-checkbox::after {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    mask: none !important;
+    -webkit-mask: none !important;
+}
