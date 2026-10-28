@@ -749,3 +749,10 @@
     mask: none !important;
     -webkit-mask: none !important;
 }
+
+
+/* TESTE: destacar tarefas concluídas na timeline */
+.taskido .timeline .task-list-item[data-task="x"],
+.taskido .timeline .task-list-item[data-task="X"] {
+    outline: 2px solid red !important;
+}

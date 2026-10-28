@@ -588,6 +588,10 @@ function getMeta(tasks) {
                 happens["done"] = doneMatch[1];
                 tasks[i].order = taskOrder.indexOf("done");
             }
+        } else if (taskDone) {
+            // Tarefa concluída sem data explícita: usar hoje.
+            happens["done"] = today;
+            tasks[i].order = taskOrder.indexOf("done");
         }
 
         // Repeat
@@ -736,39 +740,25 @@ function getSelectOptions() {
 }
 
 
-function setEvents() {
-	rootNode.querySelectorAll('.counter').forEach(cnt => cnt.addEventListener('click', (() => {
-		var activeFocus = Array.from(rootNode.classList).filter(c=>c.endsWith("Filter") && !c.startsWith("today"));
-		if (activeFocus == cnt.id+"Filter") {
-			rootNode.classList.remove(activeFocus);
-			return false;
-		};
-		rootNode.classList.remove.apply(rootNode.classList, Array.from(rootNode.classList).filter(c=>c.endsWith("Filter") && !c.startsWith("today")));
-		rootNode.classList.add(cnt.id+"Filter");
-	})));
-	rootNode.querySelector('.todayHeader').addEventListener('click', (() => {
-		rootNode.classList.toggle("todayFocus");
-	}));
-	rootNode.querySelectorAll('.task:not(.star, .add)').forEach(t => t.addEventListener('click', ((e) => {
-		var link = t.getAttribute("data-link");
-		var line = t.getAttribute("data-line");
-		var col = t.getAttribute("data-col");
-		if (e.target.closest(".task .tag")) {
-			// Tag
-		} else if (e.target.closest(".timeline .icon")) {
-			// Check
-			var task = e.target.closest(".task");
-			var icon = e.target.closest(".timeline .icon");
-			icon.innerHTML = getTaskStatusIcon({
-    status: "x"
-});
 
-completeTask(link, line, col);
-		} else {
-			// File
-			openFile(link, line, col);
-		};
-	})));
+function setEvents() {
+    rootNode.querySelectorAll('.task:not(.star, .add)').forEach(t => {
+        t.addEventListener('click', e => {
+            // Ignora cliques nas tags.
+            if (e.target.closest(".task .tag")) {
+                return;
+            }
+
+            const link = t.getAttribute("data-link");
+            const line = t.getAttribute("data-line");
+            const col = t.getAttribute("data-col");
+
+            // Apenas navega até a tarefa.
+            openFile(link, line, col);
+        });
+    });
+
+
 	
 
 rootNode.querySelector(".ok").addEventListener("click", async () => {
@@ -932,25 +922,68 @@ function openFile(link, line, col) {
 	});
 };
 
-function completeTask(link, line, col) {
-	app.workspace.openLinkText('', link).then(() => {
-		if (line && col) {
-			try {
-				const view = app.workspace.activeLeaf.getViewState();
-				view.state.mode = 'source'; // mode = source || preview
-				app.workspace.activeLeaf.setViewState(view);
-				var cmEditor = app.workspace.activeLeaf.view.editor;
-				var cmLine = cmEditor.getLine(parseInt(line));
-				if (cmLine.includes("🔁")) {var addRange = 1} else {var addRange = 0};
-				cmEditor.setCursor(parseInt(line), parseInt(col));
-				app.commands.executeCommandById('obsidian-tasks-plugin:toggle-done');
-				cmEditor.setSelection({line: parseInt(line) + addRange, ch: 6},{line: parseInt(line) + addRange, ch: parseInt(col) + 13});
-				cmEditor.focus();
-			} catch(err) {
-				new Notice("Something went wrong!")
-			};
-		};
-	});
+async function completeTask(link, line, col, taskText) {
+    try {
+        await app.workspace.openLinkText("", link);
+
+        const leaf = app.workspace.activeLeaf;
+        const view = leaf.getViewState();
+        view.state.mode = "source";
+        await leaf.setViewState(view);
+
+        const editor = leaf.view.editor;
+        const target = taskText.trim();
+
+        const start = Math.max(0, parseInt(line, 10) - 2);
+        const end = Math.min(
+            editor.lineCount() - 1,
+            parseInt(line, 10) + 2
+        );
+
+        const matches = [];
+
+        for (let i = start; i <= end; i++) {
+            const text = editor.getLine(i);
+            const match = text.match(
+                /^(\s*(?:[-*+]|\d+[.)])\s+\[)([ xX])(\])\s*(.*)$/
+            );
+
+            if (!match) continue;
+
+            if (match[4].trim() === target) {
+                matches.push({
+                    line: i,
+                    column: match[1].length,
+                    marker: match[2]
+                });
+            }
+        }
+
+        if (matches.length !== 1) {
+            new Notice(
+                matches.length === 0
+                    ? "Não encontrei a tarefa pelo texto."
+                    : "O texto corresponde a várias tarefas."
+            );
+            return;
+        }
+
+        const task = matches[0];
+        const newMarker = task.marker === " " ? "X" : " ";
+
+        editor.replaceRange(
+            newMarker,
+            { line: task.line, ch: task.column },
+            { line: task.line, ch: task.column + 1 }
+        );
+
+        editor.setCursor(task.line, task.column);
+        editor.focus();
+
+    } catch (err) {
+        console.error(err);
+        new Notice("Não foi possível atualizar a tarefa.");
+    }
 };
 
 function getFilename(path) {
@@ -1247,13 +1280,6 @@ function getTimeline(tasks) {
             // Ícone de status
             let icon = getTaskStatusIcon(item);
 
-console.log("Ícone gerado:", icon);
-
-console.log(
-    "Contém task-status-icon:",
-    String(icon).includes("task-status-icon")
-);
-
             // Preserva os ícones especiais da timeline
             if (cls === "overdue") {
                 icon = alertIcon;
@@ -1283,15 +1309,7 @@ console.log(
 
             appendHTML(content, taskHTML);
 
-const insertedTask = content.lastElementChild;
-
-console.log("Tarefa inserida:", insertedTask?.outerHTML);
-
-console.log(
-    "Ícone encontrado na tarefa:",
-    insertedTask?.querySelectorAll(".task-status-icon").length
-);
-        });
+     });
 
         // Linha da data
         const dateLine = document.createElement("div");
@@ -1315,11 +1333,6 @@ console.log(
 
         timelineRoot.appendChild(details);
 
-        // Diagnóstico temporário dos ícones
-        console.log(
-            "Timeline: elementos de status encontrados:",
-            details.querySelectorAll(".task-status-icon").length
-        );
 
         // Tipos presentes no ano
         containedTypesPerYear = [...new Set(containedTypesPerYear)].sort();
